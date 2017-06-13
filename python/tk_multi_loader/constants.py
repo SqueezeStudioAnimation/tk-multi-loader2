@@ -24,6 +24,7 @@ PUBLISHED_FILES_FIELDS = ["name",
                           "task",
                           "task.Task.sg_status_list",
                           "task.Task.due_date",
+                          "task.Task.step",  # added by rlessard: used in our filter_publishes hook
                           "project",
                           "task.Task.content",
                           "created_by",
