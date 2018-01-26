@@ -222,7 +222,12 @@ class LoaderActionManager(ActionManager):
             a.triggered[()].connect(
                 lambda qt_action=a, actions=actions: self._execute_hook(qt_action, actions)
             )
-            a.setData(actions)
+            # Convert actions to a pickle string
+            # This helps when dealing with PyQt4 which won't automatically convert back QString and QVariant
+            # when calling a.data()
+            import cPickle as pickle
+            data_str = pickle.dumps(actions)
+            a.setData(data_str)
             qt_actions.append(a)
 
         return qt_actions

@@ -982,7 +982,18 @@ class AppDialog(QtGui.QWidget):
 
         :param action: The QAction that is being executed.
         """
+        import cPickle as pickle
         data = action.data()
+        # Convert data back
+        # This helps when dealing with PyQt4 which won't automatically convert back QString and QVariant
+        # when calling a.data()
+        if isinstance(data, QtCore.QVariant):
+            data = str(data.toString())
+
+        data = pickle.loads(data)
+
+        if isinstance(data, QtCore.QVariant):
+            data = self.value_to_str(data)
 
         # If there is a single item, we'll put its name in the banner.
         if len(data) == 1:
