@@ -367,7 +367,7 @@ class LoaderActionManager(ActionManager):
         sg.triggered[()].connect(lambda f=sg_data: self._show_in_sg(f))
         qt_actions.append(sg)
 
-        sr = QtGui.QAction("Show in Screening Room", None)
+        sr = QtGui.QAction("Show in Media Center", None)
         sr.triggered[()].connect(lambda f=sg_data: self._show_in_sr(f))
         qt_actions.append(sr)
 
@@ -411,11 +411,36 @@ class LoaderActionManager(ActionManager):
                 "Error: %s" % e,
             )
         else:
+
+            # Logging the "Loaded Published File" toolkit metric
+            #
+            # We're deliberately not making any checks or verification in the
+            # code below, as we don't want to be logging exception or debug
+            # messages relating to metrics. 
+            #
+            # On any failure relating to metric logging we just silently
+            # catch and continue normal execution.
             try:
-                self._app.log_metric("%s action" % (actions[0]["action_name"],))
+                from sgtk.util.metrics import EventMetric
+
+                action = actions[0]
+                action_title = action.get("name")
+                publish_type = action.get("sg_publish_data").get("published_file_type").get("name")
+                properties = {
+                    "Publish Type": publish_type,
+                    "Action Title": action_title
+                }
+                EventMetric.log(
+                                EventMetric.GROUP_TOOLKIT,
+                                "Loaded Published File",
+                                properties=properties,
+                                bundle=self._app
+                )
+
             except:
                 # ignore all errors. ex: using a core that doesn't support metrics
                 pass
+
         finally:
             self.post_execute_action.emit(qt_action)
 
@@ -430,13 +455,15 @@ class LoaderActionManager(ActionManager):
 
     def _show_in_sr(self, entity):
         """
-        Callback - Shows a shotgun entity in screening room
+        Callback - Shows a shotgun entity in the shotgun media center
         
         :param entity: std sg entity dict with keys type, id and name
         """
-        url = "%s/page/screening_room?entity_type=%s&entity_id=%d" % (self._app.sgtk.shotgun.base_url, 
-                                                                      entity["type"], 
-                                                                      entity["id"])                    
+        url = "%s/page/media_center?type=%s&id=%s" % (
+            self._app.sgtk.shotgun.base_url,
+            entity["type"],
+            entity["id"]
+        )
         QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
     
     def _show_in_fs(self, paths):

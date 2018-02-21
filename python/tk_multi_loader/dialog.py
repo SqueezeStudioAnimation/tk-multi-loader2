@@ -679,9 +679,10 @@ class AppDialog(QtGui.QWidget):
                 # if there is an associated version, show the play button
                 if sg_item.get("version"):
                     sg_url = sgtk.platform.current_bundle().shotgun.base_url
-                    url = "%s/page/screening_room?entity_type=%s&entity_id=%d" % (sg_url,
-                                                                                  sg_item["version"]["type"],
-                                                                                  sg_item["version"]["id"])
+                    url = "%s/page/media_center?type=Version&id=%d" % (
+                        sg_url,
+                        sg_item["version"]["id"]
+                    )
 
                     self.ui.detail_playback_btn.setVisible(True)
                     self._current_version_detail_playback_url = url
@@ -699,7 +700,11 @@ class AppDialog(QtGui.QWidget):
                 msg = ""
                 msg += __make_table_row("Name", name_str)
                 msg += __make_table_row("Type", type_str)
-                msg += __make_table_row("Version", "%03d" % sg_item.get("version_number"))
+
+                version = sg_item.get("version_number")
+                vers_str = "%03d" % version if version is not None else "N/A"
+
+                msg += __make_table_row("Version", "%s" % vers_str)
 
                 if sg_item.get("entity"):
                     entity_str = "<b>%s</b> %s" % (sg_item.get("entity").get("type"),
@@ -741,7 +746,7 @@ class AppDialog(QtGui.QWidget):
         Callback when someone clicks the version playback button
         """
         # the code that sets up the version button also populates
-        # a member variable which olds the current screening room url.
+        # a member variable which olds the current media center url.
         if self._current_version_detail_playback_url:
             QtGui.QDesktopServices.openUrl(QtCore.QUrl(self._current_version_detail_playback_url))
 
@@ -1000,9 +1005,11 @@ class AppDialog(QtGui.QWidget):
             sg_data = data[0]["sg_publish_data"]
             name_str = sg_data.get("name") or "Unnamed"
             version_number = sg_data.get("version_number")
+            vers_str = "%03d" % version_number if version_number is not None else "N/A"
+
             self._action_banner.show_banner(
-                "<center>Action <b>%s</b> launched on <b>%s Version %03d</b></center>" % (
-                    action.text(), name_str, version_number
+                "<center>Action <b>%s</b> launched on <b>%s Version %s</b></center>" % (
+                    action.text(), name_str, vers_str
                 )
             )
         else:
