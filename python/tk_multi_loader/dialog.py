@@ -989,16 +989,16 @@ class AppDialog(QtGui.QWidget):
         """
         import cPickle as pickle
         data = action.data()
-        # Convert data back
-        # This helps when dealing with PyQt4 which won't automatically convert back QString and QVariant
-        # when calling a.data()
-        if isinstance(data, QtCore.QVariant):
-            data = str(data.toString())
+        # Hack: PyQt4 won't automatically convert QVariant values.
+        # This cause crashes in Katana.
+        try:
+            if isinstance(data, QtCore.QVariant):
+                data = data.toString()
+        except AttributeError:  # this can be raised if QtCore.QVariant don't exist (ex: Maya 2018)
+            pass
 
+        data = str(data)  # for unicode to bytecode conversion
         data = pickle.loads(data)
-
-        if isinstance(data, QtCore.QVariant):
-            data = self.value_to_str(data)
 
         # If there is a single item, we'll put its name in the banner.
         if len(data) == 1:
